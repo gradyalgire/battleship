@@ -322,7 +322,7 @@ public:
 
 						for (int s = j; s < newLength; s++) { // for the length of the ship currently being placed
 
-							if (spotsTaken[i][s] == true) { // if a spot is taken, break
+							if (spotsTaken[i][s] == 1) { // if a spot is taken, break
 								break;
 							}
 							else {
@@ -681,15 +681,15 @@ public:
 
 			// checks for valid coordinates
 			if (guess.length() < 3) {
-				while ((guess[0] < 'A' || guess[0] > 'J') || (guess[1] < '1' || guess[1] > '9') || (guess.length() < 3)) {
-					cout << "\nError: " << guess << " is an invalid input\n\n";
+				while ((guess[0] < 'A' || guess[0] > 'J') || (guess[1] < '1' || guess[1] > '9') || (guess.length() > 2)) {
+					cout << "\nError 1: " << guess << " is an invalid input\n\n";
 					cout << "Enter coordinates to fire at the computer (e.g. A6 E7 B4): ";
 					cin >> guess;
 				}
 			}
 			else {
-				while ((guess[1] != '1' && guess[2] != '0') || (guess.length() > 3)) {
-					cout << "\nError: " << guess << " is an invalid input\n\n";
+				while ((guess[0] < 'A' || guess[0] > 'J') || (guess[1] != '1' || guess[2] != '0') || (guess.length() > 4)) {
+					cout << "\nError 2: " << guess << " is an invalid input\n\n";
 					cout << "Enter coordinates to fire at the computer (e.g. A6 E7 B4): ";
 					cin >> guess;
 				}
@@ -706,7 +706,7 @@ public:
 				col = 9; // user sees 1-10 but the code logic uses 0-9
 			}
 
-			if (computer.spotsTaken[row][col] == true) { // if the spot guessed by the player "hits" one of the computers ships
+			if (computer.spotsTaken[row][col] == 1) { // if the spot guessed by the player "hits" one of the computers ships
 
 				// some cool ascii art
 				cout << endl;
@@ -714,7 +714,7 @@ public:
 				cout << "   ()    ()     ()        ()     ()\n";
 				cout << "   ()()()()     ()        ()     ()\n";
 				cout << "   ()    ()     ()        ()       \n";
-				cout << "   ()    ()  ()()()()     ()     ()\n\n";
+				cout << "   ()    ()  ()()()()     ()     ()";
 
 				// update the players guess board
 				guessBoard[row][col] = " X ";
@@ -743,7 +743,8 @@ public:
 								numCompShips = numCompShips - 1;
 
 								// tell they player what ship they sunk
-								cout << "  !!! You sunk the computers " << computer.ships[i].getName() << " !!!\n";
+								cout << "              ";
+								cout << "!!! You sunk the computers " << computer.ships[i].getName() << " !!!\n\n";
 
 								// mark the ship on the board as all X's, and the space surrounding the ship
 								for (int s = 0; s < coords.length();) {
@@ -757,6 +758,9 @@ public:
 								}
 
 								// add logic to mark X's around the ship
+							}
+							else {
+								cout << "\n\n";
 							}
 
 							// display the players guess board
@@ -844,7 +848,10 @@ public:
 				// Find an empty horizontal spot to put the ship
 				if (orientation == 'h') {
 
-					if (((startCol + length) - 10) < 0) { // If the ships starting coordinates aren't too far right
+					// If the ships starting coordinates aren't too far right
+					// and the spot to the left of the ship isnt taken
+					// and the spot to the right of the ship isnt taken
+					if ( (((startCol + length) - 10) < 0) && (spotsTaken[startRow][startCol - 1] == 0) && (spotsTaken[startRow][startCol+length] == 0)) {
 
 						int newLength = length + startCol; // Adjust the length for the for loops
 
@@ -872,14 +879,17 @@ public:
 				}
 				else { // vertical
 
-					if (((startRow + length) - 10) < 0) { // If the ships starting coordinates aren't too far down
+					// If the ships starting coordinates aren't too far down
+					// and the spot to the top of the ship isnt taken
+					// and the spot to the bottom of the ship isnt taken
+					if (((startRow + length) - 10) < 0) {
 
 						int newLength = length + startRow; // Adjust the length for the for loops
 
 						int count = 0; // Counts number of open spaces
 
 						for (int s = startRow; s < newLength; s++) { // For the length of the ship currently being placed
-							if (spotsTaken[s][startCol] == 1) {
+							if ((spotsTaken[s][startCol] == 1)) {
 								break;
 							}
 							else {
@@ -899,10 +909,88 @@ public:
 				}
 			}
 		}
+		// displays the computers coordinates for every ship
+		/*for (int i = 0; i < 5; i++) {
+			cout << ships[i].getCoords() << endl;
+		}*/
 	}
 
 	// attack the player
-	int attackPlyr(board player) {
+	int attackPlyr(board& player) {
+
+		// Create a random device
+		random_device rd;
+		// Seed the generator
+		mt19937 gen(rd());
+		// Define the distribution range: 0 to 9 for random coordinates
+		uniform_int_distribution<> distrib(0, 9);
+		
+		// Define the distribution range: 0 to 9 for random coordinates
+		uniform_int_distribution<> distrib2(0, 3);
+
+		int row = -1;
+		int col = -1;
+
+		bool attacking = true;
+		while (attacking == true) {
+
+			if (row < 0 && col < 0) {
+
+				// Generate random attack coordinates
+				row = distrib(gen);
+				col = distrib(gen);
+			}
+
+			// check if computer already guessed this spot
+			if ((player.gameBoard[row][col] == " X ") || (player.gameBoard[row][col] == " * ")) {
+				continue;
+			}
+			else { // havent guessed this spot
+				if (player.spotsTaken[row][col] == 1) { // the computer hit one of the player ships
+
+					cout << endl;
+					cout << "   ()    ()  ()()()()  ()()()()  ()\n";
+					cout << "   ()    ()     ()        ()     ()\n";
+					cout << "   ()()()()     ()        ()     ()\n";
+					cout << "   ()    ()     ()        ()       \n";
+					cout << "   ()    ()  ()()()()     ()     ()\n";
+
+					// mark players board
+					player.gameBoard[row][col] = " X ";
+
+					int nextMove = distrib(gen);
+
+					if (nextMove == 0) {
+						row++;
+					}
+					else if (nextMove == 1) {
+						col++;
+					}
+					else if (nextMove == 2) {
+						row--;
+					}
+					else {
+						col--;
+					}
+
+				}
+				else { // miss
+
+					cout << endl;
+					cout << "   ())  (()  ()()()()  ()()()    ()()()   ()\n";
+					cout << "   ()()()()     ()    ()_   ()  ()_   ()  ()\n";
+					cout << "   () () ()     ()      ^()_      ^()_    ()\n";
+					cout << "   ()    ()     ()    ()   ^()  ()   ^()    \n";
+					cout << "   ()    ()  ()()()()  ()()()    ()()()   ()\n\n";
+
+					// mark players board
+					player.gameBoard[row][col] = " * ";
+
+					attacking = false;
+
+				}
+			}
+		}
 		return 1;
 	}
 };

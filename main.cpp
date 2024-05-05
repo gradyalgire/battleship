@@ -26,10 +26,10 @@ int main() {
 
 		// Add ships to the users board
 		player.placePlyrShips();
+		cout << "\n\n\n\n\n\n\n";
 
 		// Add computer ships to its board
 		computer.placeCompShips();
-		computer.displayBoard();
 
 		// each player starts with 5 ships
 		int plyrShips = 5;
@@ -38,14 +38,13 @@ int main() {
 		while (plyrShips > 0 && compShips > 0) { // run until one of the players has no ships left
 			
 			// player attacks computer
-			cout << "\n\n\n\n\n\n\n";
 			player.plyrGuessBoard();
 			compShips = player.attackComp(computer);
 
 			// computer attacks player
 
 			//pause for computer "thinking" time
-			cout << "Computer is guessing...\n";
+			cout << "Computer is guessing...";
 			//this_thread::sleep_for(chrono::seconds(5));
 
 			// attack
